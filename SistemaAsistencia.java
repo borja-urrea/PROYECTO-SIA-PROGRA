@@ -2,68 +2,45 @@
  *
  * @author borja
  */
-import java.util.ArrayList;
-import java.util.HasMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class SistemaAsistencia {
-    private Map <String, Alumno> alumnos;
+    private Map<Integer, Alumno> alumnos;
     
     public SistemaAsistencia(){
         this.alumnos = new HashMap<>();
     }
     
-    //Metodos de lectura
+    public Map<Integer, Alumno> getAlumnos() { return alumnos; }
     
-    public Map<String, Alumno> getAlumno() {return alumnos;}
-    public void setAlumnos(Map<String, Alumno> alumnos) {this.alumnos = alumnos;}
+    public void agregarAlumno(Alumno alumno) {
+        alumnos.put(alumno.getRut(), alumno);
+    }
 
-    public void registrarAlumno(Alumno alumno) {
-        alumnos.put(alumno.getRut(), alumno)
+    public Alumno buscarAlumno(int rut) throws AlumnoNoEncontradoExceptions {
+        if(!alumnos.containsKey(rut)) {
+            throw new AlumnoNoEncontradoExceptions("No se encontró el RUT: " + rut);
+        }
+        return alumnos.get(rut);
+    }
+
+    public void marcarAsistencia(int rut, Fecha fecha, int estado) throws AlumnoNoEncontradoExceptions, RegistroDupException {
+        Alumno alumno = buscarAlumno(rut);
+        alumno.agregarRegistro(new RegistroAsistencia(fecha, estado));
     }
     
-    public void marcarAsistencia(String rut, Fecha fecha, int estado){
-        Alumno alumno = alumnos.get(rut);
-        if(alumno != null){
-            boolean exito = alumno.agregarRegistro(new RegistroAsistencia(fecha, estado));
-            if(!exito) {
-                System.out.println("Error: Ya existe un registro para el alumno el día " + fecha);
-            }
-        } else {
-            System.out.println("Error: Alumno no encontrado");
-        }
+    public void marcarAsistencia(int rut, int dia, int mes, int estado) throws AlumnoNoEncontradoExceptions, RegistroDupException {
+        marcarAsistencia(rut, new Fecha(dia, mes), estado);
     }
 
-    public void justificarFalta(String rut, Fecha fecha){
-        Alumno alumno = alumnos.get(rut);
-        if(alumno != null){
-            for(RegistroAsistencia r : alumno.getHistorial()) {
-                if(r.getFecha().equals(fecha) && r.getEstado() == EstadoAsistencia.INASISTENCIA_REGULAR){
-                    r.setEstado(EstadoAsistencia.INASISTENCIA_EXTRAORDINARIA);
-                    System.out.println("Falta del " + fecha + "justificada con exito.");
-                    return;
-                }
+    public List<Alumno> obtenerAlumnosEnRiesgo(double porcentajeMinimo) {
+        List<Alumno> enRiesgo = new ArrayList<>();
+        for(Alumno al : alumnos.values()) {
+            if(!al.getHistorial().isEmpty() && al.calcularPorcentajeAsistencia() < porcentajeMinimo) {
+                enRiesgo.add(al);
             }
-            System.out.println("No se encontro inasistencia regular en esa fecha para ser justificada.");
         }
+        return enRiesgo;
     }
-
-    public void mostrarFichaAlumno(String rut) {
-        Alumno alumno = alumnos.get(rut);
-        if (alumno != null){
-            System.out.println("\n--- Ficha de " + alumno.getNombre() + " (RUT: " + alumno.getRut() + " ) ---");
-            for(RegistroAsistencia r : alumno.getHistorial()){
-                String nombreEstado = "";
-                switch(r.getEstado()) {
-                    case 1: nombreEstado = "Presente"; break;
-                    case 2: nombreEstado = "Falta Regular"; break;
-                    case 3: nombreEstado = "Falta Justificada (Extraordinaria)"; break; 
-                    case 4: nombreEstado = "Salida Temprana"; break; 
-                }
-                System.out.println("Fecha: " + r.getFecha() + " | Estado: " + nombreEstado + " (" + r.getEstado() + ")");
-            }
-            System.out.println("Porcentaje de Asistencia Real: %.2f%%\n", alumno.calcularPorcentajeAsistencia());
-        }
-    }
+    
 }

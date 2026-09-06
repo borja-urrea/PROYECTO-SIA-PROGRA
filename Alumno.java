@@ -3,77 +3,67 @@
  * @author borja
  */
 import java.util.ArrayList;
-import java.util.HasMap;
 import java.util.List;
-import java.util.Map;
 
 public class Alumno {
+    private int rut; 
     private String nombre; 
-    private String rut; 
-    private String curso; //En palabras (ej: Cuarto Basico A)
+    private String curso; 
     private List<RegistroAsistencia> historial;
 
-    public Alumno(String rut, String nombre, String curso) {
-        this.rut = rut;
-        this.nombre = nombre;
+    public Alumno(int rut, String nombre, String curso) {
+        this.rut = rut; 
+        this.nombre = nombre; 
         this.curso = curso;
         this.historial = new ArrayList<>();
     }
     
-    public String getRut() {return rut;}
-    public void setRut(String rut) {this.rut = rut;}
+    public int getRut() { return rut; }
+    public void setRut(int rut) { this.rut = rut; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getCurso() { return curso; }
+    public void setCurso(String curso) { this.curso = curso; }
     
-    public String getNombre() {return nombre;}
-    public void setNombre(String nombre) {this.nombre = nombre;}
-
-    public String getCurso() {return curso;}
-    public void setCurso(String curso) {this.curso = curso;}
-
-    public List <RegistroAsistencia> getHistorial() {return historial;}
-    public void setHistorial(List <registroAsistencia> historial) {this.historial = historial;}
+    public List<RegistroAsistencia> getHistorial() { return historial; }
     
-    public boolean agregarRegistro(RegistroAsistencia registro){
-        for (int i = 0; i < historial.size(); i++){
-            RegistroAsistencia r = historial.get(i);
+    public void agregarRegistro(RegistroAsistencia registro) throws RegistroDupException {
+        for (RegistroAsistencia r : historial){
             if (r.getFecha().equals(registro.getFecha())){
-                return false;
+                throw new RegistroDupException("Registro duplicado en la fecha " + registro.getFecha());
             }
         }
         historial.add(registro);
-        return true;
     }
 
     public double calcularPorcentajeAsistencia() {
         if (historial.isEmpty()) return 0.0;
-    
-        int diasPresente = 0;
-        int salidasTemprandas = 0;
-        int diasExcluidos = 0;
+        int diasPresente = 0, salidasTempranas = 0, diasExcluidos = 0;
         
-        for (int i = 0; i < historial.size(); i ++) {
-            RegistroAsistencia r = historial.get(i);
+        for (RegistroAsistencia r : historial) {
             switch(r.getEstado()){
-                case EstadoAsistencia.PRESENTE:
-                    diasPresente ++;
+                case EstadoAsistencia.PRESENTE: 
+                    diasPresente++; 
                     break;
-                case EstadoAsistencia.SALIDA_TEMPRANA:
-                    diasPresente ++;
-                    salidasTempranas ++;
+                case EstadoAsistencia.SALIDA_TEMPRANA: 
+                    diasPresente++; 
+                    salidasTempranas++; 
                     break;
-                case EstadoAsistencia.INASISTENCIA_EXTRAORDINARIA:
-                    diasExcluidos++;
-                    break;
-                case EstadoAsistencia.INASISTENCIA_REGULAR:
+                case EstadoAsistencia.INASISTENCIA_EXTRAORDINARIA: 
+                    diasExcluidos++; 
                     break;
             }
         }
-        
         int penalizacion = salidasTempranas / 3;
         int asistenciasEfectivas = diasPresente - penalizacion;
-        
         int totalDiasEvaluables = historial.size() - diasExcluidos;
         
-        if (totalDiasEvaluables == 0) return 0.0;
+        if (totalDiasEvaluables <= 0) return 0.0;
         return ((double) asistenciasEfectivas / totalDiasEvaluables) * 100;
+    }
+
+    @Override
+    public String toString() {
+        return "RUT: " + rut + " | " + nombre + " (" + curso + ") | Asistencia: " + String.format("%.1f", calcularPorcentajeAsistencia()) + "%";
     }
 }

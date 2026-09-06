@@ -16,14 +16,13 @@ public class Fecha {
         this.mes = mes; 
     }
 
-    public int getDia() {return dia;}
-    public void setDia(int dia) {this.dia = dia;}
-
-    public int getMes() {return mes;}
-    public void setMes(int mes) {this.mes = mes;}
+    public int getDia() { return dia; }
+    public void setDia(int dia) { this.dia = dia; }
+    public int getMes() { return mes; }
+    public void setMes(int mes) { this.mes = mes; }
 
     @Override
-    public boolean equals(object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Fecha fecha = (Fecha) obj;
@@ -31,7 +30,7 @@ public class Fecha {
     }
     
     @Override
-    public String toString(){
-        return dia + "/" + mes;
+    public String toString(){ 
+        return String.format("%02d/%02d", dia, mes); 
     }
 }
